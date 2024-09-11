@@ -89,5 +89,9 @@
   "directories": {
     "lib": "lib",
     "test": "test"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.13",
+    "fs-extra": "^11.2.0"
   }
 }
