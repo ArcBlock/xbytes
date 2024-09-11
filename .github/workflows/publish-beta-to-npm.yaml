@@ -2,7 +2,9 @@ name: publish-beta-to-npm
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - master
 
 jobs:
   publish-beta-to-npm:
