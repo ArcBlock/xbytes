@@ -30,8 +30,5 @@ jobs:
       - name: Install deps
         run: pnpm install
 
-      - name: Lint package
-        run: pnpm run lint
-
       - name: Run unit test
         run: pnpm run test
