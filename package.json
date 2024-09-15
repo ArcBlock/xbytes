@@ -16,12 +16,11 @@
   },
   "types": "typings/index.d.ts",
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "test": "jest",
     "coverage": "npm run test -- --coverage",
     "build": "vite build",
-    "preversion": "npm run build",
-    "version": "npm test",
-    "bump-version": "zx scripts/bump-version.mjs"
+    "preversion": "npm run build"
   },
   "engines": {
     "node": ">=1"
