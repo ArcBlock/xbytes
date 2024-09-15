@@ -1,5 +1,5 @@
 {
-  "name": "@arcblock/xbytes",
+  "name": "xbytes",
   "version": "1.9.1",
   "description": "Parse bytes to human readable sizes (4747) → ('4.75 KB') and vice versa.",
   "main": "dist/index.js",
@@ -63,19 +63,8 @@
     "url": "https://github.com/miraclx/xbytes/issues"
   },
   "license": "Apache-2.0",
-  "babel": {
-    "presets": [
-      "airbnb",
-      "@babel/preset-env"
-    ]
-  },
   "devDependencies": {
-    "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.9.0",
-    "@babel/preset-env": "^7.9.5",
     "@rollup/plugin-commonjs": "^26.0.1",
-    "babel-eslint": "^10.1.0",
-    "babel-preset-airbnb": "^3.3.2",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.2.0",
     "eslint-config-prettier": "^4.3.0",
@@ -89,9 +78,5 @@
   "directories": {
     "lib": "lib",
     "test": "test"
-  },
-  "dependencies": {
-    "dayjs": "^1.11.13",
-    "fs-extra": "^11.2.0"
   }
 }
