@@ -7,27 +7,56 @@
 
 /* eslint-disable no-restricted-properties */
 
-function xbytes(size = 0, options) {
+function xbytes(size = 0, options?: any) {
   if (Number.isNaN((size = +size)) || typeof size !== 'number') return null;
-  const {iec = false, bits = false, short = true, space = true, fixed = 2, prefixIndex, sticky = false} = options || {};
+  const {
+    iec = false,
+    bits = false,
+    short = true,
+    space = true,
+    fixed = 2,
+    prefixIndex,
+    sticky = false,
+  } = options || {};
   size *= bits ? 8 : 1;
-  const sizes = ['-', 'Kilo', 'Mega', 'Giga', 'Tera', 'Peta', 'Exa', 'Zetta', 'Yotta'];
+  const sizes = [
+    '-',
+    'Kilo',
+    'Mega',
+    'Giga',
+    'Tera',
+    'Peta',
+    'Exa',
+    'Zetta',
+    'Yotta',
+  ];
   const exponent =
     typeof prefixIndex === 'number'
       ? prefixIndex
-      : (v => (sticky && Number.isInteger(v) ? v - 1 : Math.floor(v)))(Math.log(Math.abs(size)) / Math.log(iec ? 1024 : 1000)) ||
-        0;
-  size /= ~exponent && exponent in sizes ? Math.pow(iec ? 1024 : 1000, exponent) : 1;
+      : ((v) => (sticky && Number.isInteger(v) ? v - 1 : Math.floor(v)))(
+          Math.log(Math.abs(size)) / Math.log(iec ? 1024 : 1000)
+        ) || 0;
+  size /=
+    ~exponent && exponent in sizes ? Math.pow(iec ? 1024 : 1000, exponent) : 1;
   const select = sizes[exponent] || sizes[0];
   const byteStr = !short
-    ? select.replace(/(\w{2})(\w+)/, `$1${iec ? 'bi' : '$2'}-`).replace(/-/, !bits ? 'Bytes' : 'Bits')
-    : select[0].replace(/(-?|[^\w])$/, `${iec && exponent in sizes && exponent > 0 ? 'i' : ''}${!bits ? 'B' : 'b'}`);
+    ? select
+        .replace(/(\w{2})(\w+)/, `$1${iec ? 'bi' : '$2'}-`)
+        .replace(/-/, !bits ? 'Bytes' : 'Bits')
+    : select[0].replace(
+        /(-?|[^\w])$/,
+        `${iec && exponent in sizes && exponent > 0 ? 'i' : ''}${
+          !bits ? 'B' : 'b'
+        }`
+      );
   return [size.toFixed(fixed), byteStr].join(space ? ' ' : '');
 }
 
 const unitMatcher = /^(?:([kmgtpezy])(i?))?(b)$/i;
 
-const genericMatcher = new RegExp(`([+-]?\\d+(?:\\.\\d+)?(?:e[+-]\\d+)?)\\s*((?:([kmgtpezy])(i?))?(b))\\b`);
+const genericMatcher = new RegExp(
+  `([+-]?\\d+(?:\\.\\d+)?(?:e[+-]\\d+)?)\\s*((?:([kmgtpezy])(i?))?(b))\\b`
+);
 
 const globalByteFilter = new RegExp(genericMatcher.source, 'gi');
 
@@ -35,7 +64,10 @@ const byteFilter = new RegExp(`^${genericMatcher.source}`, 'i');
 
 function parseUnit(stringUnit) {
   let scan;
-  if (typeof stringUnit === 'string' && (scan = stringUnit.match(unitMatcher))) {
+  if (
+    typeof stringUnit === 'string' &&
+    (scan = stringUnit.match(unitMatcher))
+  ) {
     const [input, key, iec, type] = scan;
     const prefix = key ? key.toUpperCase() : '';
     scan = {
@@ -54,7 +86,10 @@ function parseUnit(stringUnit) {
 
 function parseString(stringBytes) {
   let scan;
-  if (typeof stringBytes === 'string' && (scan = stringBytes.match(byteFilter))) {
+  if (
+    typeof stringBytes === 'string' &&
+    (scan = stringBytes.match(byteFilter))
+  ) {
     const [input, value, unit] = scan;
     scan = {
       ...parseUnit(unit),
@@ -77,13 +112,17 @@ function extractBytes(stringOfbytes) {
   return (stringOfbytes.match(globalByteFilter) || []).filter(isBytes);
 }
 
-function parseSize(stringBytes, parseOptions) {
+function parseSize(stringBytes: any, parseOptions?: any) {
   let scan;
-  const {bits = true, iec = true} = parseOptions || {};
+  const { bits = true, iec = true } = parseOptions || {};
   if (isBytes(stringBytes) && (scan = parseString(stringBytes) || 0)) {
     const index = scan.prefixIndex;
     scan =
-      (scan.value * (iec && !scan.iec ? Math.pow(10, index * 3) : Math.pow(2, 10 * index))) / (bits && scan.type === 'b' ? 8 : 1);
+      (scan.value *
+        (iec && !scan.iec
+          ? Math.pow(10, index * 3)
+          : Math.pow(2, 10 * index))) /
+      (bits && scan.type === 'b' ? 8 : 1);
   }
   return scan;
 }
@@ -99,7 +138,7 @@ function isParsable(input) {
 function hybridResolve(hybridValue) {
   if (!isParsable(hybridValue))
     throw Error(
-      `<input> argument [${hybridValue}] of type '${typeof hybridValue}' must either be a finite number or a ByteString e.g "10 MB"`,
+      `<input> argument [${hybridValue}] of type '${typeof hybridValue}' must either be a finite number or a ByteString e.g "10 MB"`
     );
   return (isBytes(hybridValue) ? parseSize(hybridValue) : +hybridValue) || 0;
 }
@@ -108,28 +147,33 @@ function parseBytes(input, options) {
   let struct;
   if (!isParsable(input))
     throw Error(
-      `<input> argument [${input}] of type '${typeof input}' must either be a finite number or a ByteString e.g "10 MB"`,
+      `<input> argument [${input}] of type '${typeof input}' must either be a finite number or a ByteString e.g "10 MB"`
     );
   let bytes = hybridResolve(input);
   if (isBytes(input)) [bytes, struct] = [parseSize(input), input];
   else [bytes, struct] = [+input || 0, xbytes(+input || 0)];
-  return {...(struct = parseString(struct)), input, bytes, size: xbytes(bytes, {...struct, ...options})};
+  return {
+    ...(struct = parseString(struct)),
+    input,
+    bytes,
+    size: xbytes(bytes, { ...struct, ...options }),
+  };
 }
 
 function internalRelationEngine(parsed, options) {
   // eslint-disable-next-line no-multi-assign
-  const {bytes: size} = parsed;
-  const bits = xbytes(size, {...options, iec: false, bits: true});
-  const bytes = xbytes(size, {...options, iec: false, bits: false});
-  const iecBits = xbytes(size, {...options, iec: true, bits: true});
-  const iecBytes = xbytes(size, {...options, iec: true, bits: false});
-  return {bytes, iecBytes, bits, iecBits};
+  const { bytes: size } = parsed;
+  const bits = xbytes(size, { ...options, iec: false, bits: true });
+  const bytes = xbytes(size, { ...options, iec: false, bits: false });
+  const iecBits = xbytes(size, { ...options, iec: true, bits: true });
+  const iecBytes = xbytes(size, { ...options, iec: true, bits: false });
+  return { bytes, iecBytes, bits, iecBits };
 }
 
 function relative(data, options) {
   const parsed = parseBytes(data);
   const result = internalRelationEngine(parsed, options);
-  return {parsed, size: parsed.size, raw: data, ...result};
+  return { parsed, size: parsed.size, raw: data, ...result };
 }
 relative.bits = (data, opts) => relative(data, opts).bits;
 relative.bytes = (data, opts) => relative(data, opts).bytes;
@@ -145,7 +189,7 @@ relative.size = (size, unit, options) => {
       prefixIndex: result.prefixIndex,
     };
   }
-  return xbytes(parsed.bytes, {...options, ...props});
+  return xbytes(parsed.bytes, { ...options, ...props });
 };
 
 function createByteParser(config) {
@@ -172,38 +216,53 @@ function parseByteOrByteArray(input) {
 
 class ByteUnitObject {
   constructor(bytes) {
-    if (!isParsable(bytes)) throw Error('<bytes> argument must be a finite value');
+    if (!isParsable(bytes))
+      throw Error('<bytes> argument must be a finite value');
     this.bytes = hybridResolve(bytes);
     this.checkInternalByteVal();
   }
 
   checkInternalByteVal() {
     if (!Number.isFinite(this.bytes))
-      throw Error('Internal container for bytes value invalid, probably corrupted from external source');
+      throw Error(
+        'Internal container for bytes value invalid, probably corrupted from external source'
+      );
   }
 
   add(bytes) {
-    if (!isParsable(bytes)) throw Error('<bytes> argument must be a finite value');
+    if (!isParsable(bytes))
+      throw Error('<bytes> argument must be a finite value');
     this.checkInternalByteVal();
-    return new ByteUnitObject(this.bytes + parseByteOrByteArray(bytes).reduce((a, v) => a + v, 0));
+    return new ByteUnitObject(
+      this.bytes + parseByteOrByteArray(bytes).reduce((a, v) => a + v, 0)
+    );
   }
 
   subtract(bytes) {
-    if (!isParsable(bytes)) throw Error('<bytes> argument must be a finite value');
+    if (!isParsable(bytes))
+      throw Error('<bytes> argument must be a finite value');
     this.checkInternalByteVal();
-    return new ByteUnitObject(this.bytes - parseByteOrByteArray(bytes).reduce((a, v) => a + v, 0));
+    return new ByteUnitObject(
+      this.bytes - parseByteOrByteArray(bytes).reduce((a, v) => a + v, 0)
+    );
   }
 
   multiply(bytes) {
-    if (!isParsable(bytes)) throw Error('<bytes> argument must be a finite value');
+    if (!isParsable(bytes))
+      throw Error('<bytes> argument must be a finite value');
     this.checkInternalByteVal();
-    return new ByteUnitObject(this.bytes * parseByteOrByteArray(bytes).reduce((a, v) => a * v, 1));
+    return new ByteUnitObject(
+      this.bytes * parseByteOrByteArray(bytes).reduce((a, v) => a * v, 1)
+    );
   }
 
   divide(bytes) {
-    if (!isParsable(bytes)) throw Error('<bytes> argument must be a finite value');
+    if (!isParsable(bytes))
+      throw Error('<bytes> argument must be a finite value');
     this.checkInternalByteVal();
-    return new ByteUnitObject(this.bytes / parseByteOrByteArray(bytes).reduce((a, v) => a * v, 1));
+    return new ByteUnitObject(
+      this.bytes / parseByteOrByteArray(bytes).reduce((a, v) => a * v, 1)
+    );
   }
 
   toBits(opts) {
@@ -225,7 +284,7 @@ class ByteUnitObject {
   convertTo(unit, opts) {
     if (!isUnit(unit))
       throw Error(
-        '<unit> argument must be a valid UnitString. See https://github.com/miraclx/xbytes/blob/master/README.md#unitstring',
+        '<unit> argument must be a valid UnitString. See https://github.com/miraclx/xbytes/blob/master/README.md#unitstring'
       );
     return relative.size(this.bytes, unit, opts);
   }
@@ -261,4 +320,5 @@ xbytes.createByteParser = createByteParser;
 xbytes.createSizeParser = createSizeParser;
 xbytes.createRelativeSizer = createRelativeSizer;
 
-module.exports = xbytes;
+// 默认导出
+export = xbytes;
